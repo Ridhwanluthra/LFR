@@ -58,8 +58,9 @@ StackArray<int> y_coords;
 StackArray<int> next_direction;
 StackArray<bool> need_for_exploration;
 StackArray<int> next_explore;
+StackArray<int> type_of_junc;
 
-StackArray<StackArray<int>> adj_matrix;
+int adj_matrix[20][20];
 
 
 int junction_count = 0;
@@ -124,25 +125,64 @@ void loop()
 }
 
 void maze_solve() {
-  //if junction already found do something!!!!!!!!!!!!!1
+  // variable declarations
+  int xy[] = [0, 0];
+  int buf = 10;
+  int x, y;
+  int next_vertex;
+  int previous_junc;
+  int cost
+  
   junction_type = check_junction();
   if (junction_type != 0) {
-    //check if junction already reached
-    //if not then do this
-    //DO THIS ONLY IF NEW JUNCTION
-    junction_setting();
-    need_for_exploration.push(1);
-    next_explore.push(junction_count);
-    junction_count++;
-    update_adj_matrix();
+    //correct for pointers!!!1
+    xy = get_coords()
+
+    //loop to check which vertices have the same junction type
+    for (int junc_finding_cnt = 0; junc_finding_cnt < type_of_junc.count(); junc_finding_cnt++) {
+      // only if the junction is same do we check if the coords match
+      //JUNCTION TYPE 1=2=3, 4=5=6 AS APPROACH WILL BE DIFF
+      if (type_of_junc.peekindex(junc_finding_cnt) == junction_type) {
+        x = x_coords.peekindex(junc_finding_cnt);
+        y = y_coords.peekindex(junc_finding_cnt);
+        if (xy[0] < x + buf && xy[0] > x - buf && xy[1] < y + buf && xy[1] > y - buf) {
+          update_adj_matrix(junc_finding_cnt, previous_junc, cost);
+          need_for_exploration.change_value_at(junc_finding_cnt, 0);
+          next_vertex = next_explore.pop();
+          previous_junc = junc_finding_cnt;
+          //now go to next vertex!!!!
+          //    find  shortest path
+          //    then actually move on that
+          //          angle btwen each set of verteces
+          //     rotate by that angle and move
+          //  
+          //Send in next dirn and then break the loop
+        }
+      }
+    }
+    //NEW VERTEX FOUND COMPLETELY HANDLED
+    //use flag to handle new vertices
+    new_junction_handler();
   }
 }
 
-void update_adj_matrix() {
+void new_junction_handler() {
+  type_of_junc.push(junction_type);
+  junction_setting();
+  need_for_exploration.push(1);
+  next_explore.push(junction_count);
+  // find cost from time taken in travel
+  update_adj_matrix(junction_count, previous_junc, cost);
+  previous_junc = junction_count;
+  //finally increase junction count as new junction detected
+  junction_count++;
+}
+
+void update_adj_matrix(int junc1, int junc2, int cost) {
   // if new vertex
-  StackArray<int> ex;
-  ex.push(1);
-  adj_matrix.push(ex);
+  adj_matrix[junc1][junc2] = cost;
+  adj_matrix[junc2][junc1] = cost;
+
 }
 
 void get_coords() {
