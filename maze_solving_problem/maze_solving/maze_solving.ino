@@ -13,6 +13,8 @@
 //Incorporating Dijkstra
 #define nVertices 6
 #define INF 10000
+int next_junction;
+int current_junction;
 /*
 ***********************************POSSIBLE CAUSES OF ERRORS******************************************
 *   In function update_angle_matrix: updating theeta from current to last might be wrong
@@ -94,6 +96,7 @@ int adj_matrix[nVertices][nVertices];           //changing from 20 to arbitrary 
 int angle_matrix [nVertices][nVertices];        //Stores angle of movement between two adjacent points
 
 int junction_count = 0;
+float *xy = new int [3];
  
 void setup()
 {
@@ -156,7 +159,6 @@ void loop()
 
 void maze_solve() {
   // variable declarations
-  float *xy = new int [2];
   int buf = 7;
   int x, y;
   int next_vertex;
@@ -167,8 +169,7 @@ void maze_solve() {
   junction_type = check_junction();
   if (junction_type != 0) {
     //correct for pointers!!!
-    xy = get_coords();
-
+    get_coords();
     //loop to check which vertices have the same junction type
     for (int junc_finding_cnt = 0; junc_finding_cnt < type_of_junc.count(); junc_finding_cnt++) {
       // only if the junction is same do we check if the coords match
@@ -197,7 +198,6 @@ void maze_solve() {
           // over and over again, values stored in path after the first run should suffince
           shortestPathMove (current_vertex, next_vertex);
         }
-        delete []xy;
       }
     }
     //NEW VERTEX FOUND COMPLETELY handled         -->  How're we calculating cost?
@@ -425,8 +425,7 @@ int shortestPathMove (int src, int dest){
     current_vertex = path[current_vertex];
   }
   //Now use the shortest_path stack to decide the path to follow till the next vertex
-  int current_junction = current_vertex;
-  int next_junction;
+  current_junction = current_vertex;
   // if we integrate movement in shortestPath remove this while loop
   while (!shortest_path.isEmpty()){
     next_junction = shortest_path.pop();
