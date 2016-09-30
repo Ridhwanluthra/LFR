@@ -29,7 +29,7 @@ void setup()
 
 int lastError = 0;
 float kp = 0.1;  // 0.08 // for small = 0.1
-float kd = 0; // 1.0   // for small = 1.7
+float kd = 8; // 1.0   // for small = 1.7
 float ki = 0;
 int integral = 0;
 int derivative = 0;
@@ -38,7 +38,7 @@ void loop()
 {
   unsigned int sensors[8];
   
-  int position = qtr.readLine(sensors);
+  int position = qtr.readLine(sensors,QTR_EMITTERS_ON,1);
  
   int error = int(position) - 3500;
   integral += error;
@@ -47,12 +47,12 @@ void loop()
   Serial.println(power_difference);
   lastError = error;
   
-  const int maximum = 100;
+  const int maximum = 200;
   
   if (power_difference > maximum)
     power_difference = maximum;
   if (power_difference < -maximum)
-    power_difference = -maximum;
+    power_difference = -maximum;  
     
   if (power_difference < 0) {
     digitalWrite(rightMotorF, HIGH);
