@@ -15,6 +15,9 @@
 #define INF 10000
 int next_junction;
 int current_junction;
+
+//only in belief
+
 /*
 ***********************************POSSIBLE CAUSES OF ERRORS******************************************
 *   In function update_angle_matrix: updating theeta from current to last might be wrong
