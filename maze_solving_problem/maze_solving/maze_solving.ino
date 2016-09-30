@@ -36,10 +36,6 @@
 
 
 QTRSensorsRC qtr((unsigned char[]) {A0,4, A1, A2, A3, A4, 2, A5}, 8, 2500);
-//Declaring functions required for finding shortest path
-//if required, convert parameters to pointers.
-
-//removed definations - after 1 test if no problem remove comment
 
 //Declaring variables required for Dijkstra and shortest path.
 //If possible efficiently, convert to local variables
@@ -199,19 +195,7 @@ void maze_solve() {
           //Send in next dirn and then break the loop
           dijkstra(adj_matrix, current_vertex, path);       //In final run, we don't really need to use it
           // over and over again, values stored in path after the first run should suffince
-          shortestPath (current_vertex, next_vertex);
-          //Now use the shortest_path stack to decide the path to follow till the next vertex
-          int current_junction = current_vertex;
-          int next_junction;
-          // if we integrate movement in shortestPath remove this while loop
-          while (!shortest_path.isEmpty()){
-            next_junction = shortest_path.pop();
-            //Basic of move funtion to be handled by kartheek
-            //He'll return a stack with degrees and millis() of every movement between two adjacent junction
-            move (current_junction, next_junction);         //Make sure that the function handles the case where source and destination is same
-            //Handle the case when there are two direct paths to go from junction 'A' to adjacent junction 'B'
-            current_junction = next_junction;
-          }
+          shortestPathMove (current_vertex, next_vertex);
         }
         delete []xy;
       }
@@ -422,8 +406,8 @@ void dijkstra (int graph[nVertices][nVertices], int src, int path []) {
 
 //Finds the shortest path from source to a particular destination
 //Uses the shortest distance and neighbour marked by Dijkstra
-//Returns it as a stack
-void shortestPath (int src, int dest){
+//Moves the bot to the next junction via the shortest path and returns 
+int shortestPathMove (int src, int dest){
   //Updates stack with the shortest path from source to destination.
   //Pop operation on the stack will retain the next vertex that needs to be visited.
   int current_vertex = dest;
@@ -439,5 +423,17 @@ void shortestPath (int src, int dest){
     shortest_path.push(path[current_vertex]);     //Pushing the shortest path to the stack
     //Popping from the stack will return the vertex that needs to be visited from the source in the correct order
     current_vertex = path[current_vertex];
+  }
+  //Now use the shortest_path stack to decide the path to follow till the next vertex
+  int current_junction = current_vertex;
+  int next_junction;
+  // if we integrate movement in shortestPath remove this while loop
+  while (!shortest_path.isEmpty()){
+    next_junction = shortest_path.pop();
+    //Basic of move funtion to be handled by kartheek
+    //He'll return a stack with degrees and millis() of every movement between two adjacent junction
+    move (current_junction, next_junction);         //Make sure that the function handles the case where source and destination is same
+    //Handle the case when there are two direct paths to go from junction 'A' to adjacent junction 'B'
+    current_junction = next_junction;
   }
 }
