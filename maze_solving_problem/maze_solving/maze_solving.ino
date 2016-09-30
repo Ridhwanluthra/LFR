@@ -13,6 +13,13 @@
 //Incorporating Dijkstra
 #define nVertices 6
 #define INF 10000
+/*
+***********************************POSSIBLE CAUSES OF ERRORS******************************************
+*   In function update_angle_matrix: updating theeta from current to last might be wrong
+*   Index of the stacks x_coord, y_coord, need_for_exploration and type_of_junc might not match
+*   If it happens, check new_junction_handler and maze_solve
+********************************************END*******************************************************
+*/
 
 
 QTRSensorsRC qtr((unsigned char[]) {A0,4, A1, A2, A3, A4, 2, A5}, 8, 2500);
@@ -65,7 +72,7 @@ int orientation;
  *                           
  *                           
  */
-int junction_type;
+int junction_type;                                      //Convert it to local before final implementation
 
 StackArray<int> x_coords;
 StackArray<int> y_coords;
@@ -75,6 +82,7 @@ StackArray<int> next_explore;
 StackArray<int> type_of_junc;
 
 int adj_matrix[nVertices][nVertices];           //changing from 20 to arbitrary constant
+int angle_matrix [nVertices][nVertices];        //Stores angle of movement between two adjacent points
 
 int junction_count = 0;
  
@@ -139,14 +147,14 @@ void loop()
 
 void maze_solve() {
   // variable declarations
-  int xy[] = [0, 0];
+  float *xy = new int [2];
   int buf = 7;
   int x, y;
   int next_vertex;
   int previous_junc;
   int cost;
   int vertex_index;       //stores current vertex
-  
+  bool new_junction = true;  
   junction_type = check_junction();
   if (junction_type != 0) {
     //correct for pointers!!!1
@@ -156,14 +164,16 @@ void maze_solve() {
     for (int junc_finding_cnt = 0; junc_finding_cnt < type_of_junc.count(); junc_finding_cnt++) {
       // only if the junction is same do we check if the coords match
       //JUNCTION TYPE 1=2=3, 4=5=6 AS APPROACH WILL BE DIFF
-      if (type_of_junc.peekindex(junc_finding_cnt) == junction_type) {
+      if (check_junction_similarity(type_of_junc.peekindex(junc_finding_cnt))) {
         x = x_coords.peekindex(junc_finding_cnt);
         y = y_coords.peekindex(junc_finding_cnt);
         if (xy[0] < x + buf && xy[0] > x - buf && xy[1] < y + buf && xy[1] > y - buf) {
           update_adj_matrix(junc_finding_cnt, previous_junc, cost);       //Check how to calculate cost
+          update_angle_matrix (junc_finding_cnt, previous_junc);
           need_for_exploration.change_value_at(junc_finding_cnt, 0);
           next_vertex = next_explore.pop();
           previous_junc = junc_finding_cnt;
+          new_junction = false;           //This juntion is not a new juntion.
           //now go to next vertex!!!!
           //    find  shortest path             --> Possible done
           //    then actually move on that
@@ -187,24 +197,61 @@ void maze_solve() {
             current_junction = next_junction;
           }
         }
+        delete []xy;
       }
     }
     //NEW VERTEX FOUND COMPLETELY handled         -->  How're we calculating cost?
+    //New vertex found requires tweak according to new requirements
     //use flag to handle new vertices
-    new_junction_handler(previous_junc);
+    if (new_junction == true)
+      new_junction_handler(previous_junc);
   }
 }
 
+//Checking for junction similarity considering that 1 = 2 = 3, 4 = 5 = 6, 7 = 8 and 9 = 10
+//These junctions are treated similar for our purposes as they only have different approach
+int check_junction_similarity (int junct){
+  if ((junct == 1 || junct == 2 || junct == 3) && (junction_type == 1 || junction_type == 2 || junction_type == 3))
+    return 1;
+  if ((junct == 4 || junct == 5 || junct == 6) && (junction_type == 4 || junction_type == 5 || junction_type == 6))
+    return 1;
+  if ((junct == 7 || junct == 8) && (junction_type == 7 || junction_type == 8))
+    return 1;
+  if ((junct == 9 || junct == 10) && (junction_type == 9 || junction_type == 10))
+    return 1;
+  return 0;
+}
+
+//I hope that x-coord, y-coord and theeta corresponds to the correct vertex. If not, then this code is fucked up.
 void new_junction_handler(int &previous_junc) {         //passing previous_junc with reference as we need to update the value.
   type_of_junc.push(junction_type);
   junction_setting();
-  need_for_exploration.push(1);
-  next_explore.push(junction_count);
-  // find cost from time taken in travel
+  //Push to next_explore only if the new junction is actually a juntion.
+  //Check for the same using return values.
+  bool need_for_push = false;
+  //Checking if the point is actually a junction and not simply any random point
+  for (int junction_type_check = 1; junction_type_check < 7; junction_type_check++){
+    if (juntion_type_check == juntion_type)
+      neeed_for_push = true;              //Checked that it is a junction and thus we need to push it.
+  }
+  if (need_for_push == true){
+    need_for_exploration.push(1);
+    next_explore.push(junction_count);
+    // find cost from time taken in travel
+  }
+  else
+    need_for_exploration.push(0);
+  update_angle_matrix (junction_count, previous_count);
   update_adj_matrix(junction_count, previous_junc, cost);
   previous_junc = junction_count;
   //finally increase junction count as new junction detected
   junction_count++;
+}
+
+void update_angle_matrix (int present_juntion, int last_junction){
+  angle_matrix[last_junction][present_juntion] = theeta % 360;        //stores angle made coming from vertex A to B
+  angle_matrix[present_juntion][last_junction] = (180+theeta) % 360;    //Stores angle that will be made if we're coming from B to A
+  //180 + theeta can be wrong, check this part if there is some error while going from one vertex to another.
 }
 
 void update_adj_matrix(int junc1, int junc2, int cost) {
@@ -214,12 +261,13 @@ void update_adj_matrix(int junc1, int junc2, int cost) {
 
 }
 
-void get_coords() {
+float* get_coords() {
   float xy[2];
   //write code for getting coords
   return xy;
 }
 
+//Update junction_setting
 void junction_setting() {
   //SET NEXT DIRECTION AFTER SOME TIME
   if (junction_type == 1) {
