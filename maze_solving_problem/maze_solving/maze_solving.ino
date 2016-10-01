@@ -1,6 +1,6 @@
 #include <QTRSensors.h>
 #include <StackArray.h>
-
+#include <math.h>
 #define rightMotorF 7
 #define rightMotorB 6
 #define rightMotorPWM 5
@@ -17,6 +17,8 @@
 int next_junction;
 int current_junction;
 int initial_time;       //Required for coordinates
+int cost;
+int theta;
 /*
 ***********************************POSSIBLE CAUSES OF ERRORS******************************************
 *   In function update_angle_matrix: updating theeta from current to last might be wrong
@@ -34,6 +36,7 @@ int initial_time;       //Required for coordinates
 *    handle default configs
 *   what to do if it finds two vertices in the same coord area.
 *   Define functions for moving in next direction using IMU read
+*   Function to get IMU read
 ********************************************END*******************************************************
 */
 
@@ -99,7 +102,7 @@ int adj_matrix[nVertices][nVertices];           //changing from 20 to arbitrary 
 int angle_matrix [nVertices][nVertices];        //Stores angle of movement between two adjacent points
 
 int junction_count = 0;
-float *xy = new int [3];
+float *xy = new float [3];
  
 void setup()
 {
@@ -197,9 +200,9 @@ void maze_solve() {
           //    Handle what to do if it finds two vertices in the same coord area.
           //  
           //Send in next dirn and then break the loop
-          dijkstra(adj_matrix, current_vertex, path);       //In final run, we don't really need to use it
+          dijkstra(adj_matrix, junc_finding_cnt, path);       //In final run, we don't really need to use it
           // over and over again, values stored in path after the first run should suffince
-          shortestPathMove (current_vertex, next_vertex);
+          shortestPathMove (junc_finding_cnt, next_vertex);
           need_for_exploration.change_value_at(current_junction, 0);
           move (next_direction.peekindex(current_junction));        //Please define this function as soon as you get enough IMU turn.
         }
@@ -207,7 +210,7 @@ void maze_solve() {
     }
     //NEW VERTEX FOUND COMPLETELY handled         -->  How're we calculating cost?
     if (new_junction == true)
-      new_junction_handler(previous_junc);
+      new_junction_handler();
   }
 }
 
@@ -234,7 +237,7 @@ void new_junction_handler() {         //passing previous_junc with reference as 
   bool need_for_push = false;
   //Checking if the point is actually a junction and not simply any random point
   for (int junction_type_check = 1; junction_type_check < 7; junction_type_check++){
-    if (juntion_type_check == juntion_type)
+    if (junction_type_check == junction_type)
       need_for_push = true;              //Checked that it is a junction and thus we need to push it.
   }
   if (need_for_push == true){
@@ -246,7 +249,7 @@ void new_junction_handler() {         //passing previous_junc with reference as 
     need_for_exploration.push(0);
   x_coords.push(xy[0]);
   y_coords.push(xy[1]);
-  update_angle_matrix (junction_count, previous_count);
+  update_angle_matrix (junction_count, previous_junc);
   update_adj_matrix(junction_count, previous_junc, cost);
   previous_junc = junction_count;
   //finally increase junction count as new junction detected
@@ -290,7 +293,7 @@ void junction_setting() {
   }
 }
 
-int get_direction() {
+int get_direction(int theta) {
   if (theta > 345 && theta > 15){
     return 1;
   }
@@ -319,7 +322,7 @@ int get_direction() {
 
 
 int check_junction() {
-  private int junction_type = 0;
+  int junction_type = 0;
   //conditions to detect which junction
   if (junction_type != 0 ) {
     //FIX DELAY - USE SOMETHING ELSE;
@@ -330,15 +333,15 @@ int check_junction() {
 
 void get_coords(int index){ 
   int final_time; 
-  int delta_time, theta; 
+  int delta_time; 
   float x, y; 
   theta=fx_imu();  // function to calculate theta 
   final_time =millis(); 
   delta_time=final_time-initial_time; // finding delta time 
   xy[2]=delta_time;
   initial_time=final_time; 
-  x=x_coordinate.peekindex(i)+delta_time1*sin(theta*pi/180); // calculating the x and y coordinate of the point and pushing them into stack
-  y=y_coordinate.peekindex(i)+delta_time1*cos(theta*pi/180);
+  x=x_coords.peekindex(index)+delta_time*sin(theta*pi/180); // calculating the x and y coordinate of the point and pushing them into stack
+  y=y_coords.peekindex(index)+delta_time*cos(theta*pi/180);
   xy[0]=x;
   xy[1]=y; 
 }            
@@ -374,10 +377,14 @@ void forward()
   digitalWrite(stby,HIGH);
   }
 
-  void move (int curret, int next){
+  void move (int angle){
     //Integrate code to move from current vertex to the next vertex
   }
 
+  void move (int source, int destination) {
+    //Write method to go from one path to the next using theeta stored in angle matrix and IMU read
+  }
+  
 int minDistance (int dist [], bool sptSet []) {
   // Initializing minimum values
   int min = INF, mIndex;
@@ -448,5 +455,9 @@ int shortestPathMove (int src, int dest){
     //Handle the case when there are two direct paths to go from junction 'A' to adjacent junction 'B'
     current_junction = next_junction;
   }
+}
+
+int fx_imu (){
+  //Get IMU read using this function
 }
 
