@@ -37,6 +37,11 @@ int theta;
 *   what to do if it finds two vertices in the same coord area.
 *   Define functions for moving in next direction using IMU read
 *   Function to get IMU read
+*   What to do when end is reached
+*   Reset delta time whenever we reach back to a vertex from a dead end
+*   Don't store the vertex of dead end.
+*   If a vertex is connected to at most one vertex which is not a dead end, update the vertex's
+*   adjacency to 0 and remove it from the point.
 ********************************************END*******************************************************
 */
 
