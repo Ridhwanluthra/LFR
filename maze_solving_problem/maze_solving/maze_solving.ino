@@ -33,7 +33,7 @@ int current_junction;
 *   HANDLING DIFFERENCE BETWEEN APPROCH FROM UNEXPLORED SIDE VS BY NEXT_EXPLORE STACK
 *    handle default configs
 *   what to do if it finds two vertices in the same coord area.
-*   
+*   CHECK JUNCTION FUNCTION COMPLETELY WRONG PLEASE FIX BEFORE COMPILING   
 ********************************************END*******************************************************
 */
 
@@ -87,6 +87,13 @@ int orientation;
  *                           
  */
 int junction_type;                                      //Convert it to local before final implementation
+
+/*      Belief state storage
+*       1 = 2, 4 (junction type)
+*       2 = 1, 5
+*       3 = 3,6
+*/
+
 
 StackArray<int> x_coords;
 StackArray<int> y_coords;
@@ -318,15 +325,28 @@ int get_direction() {
   }
 }
 
-
+//COMPLETELY WRONG PLEASE FIX BEFORE COMPILING
 int check_junction() {
   private int junction_type = 0;
   //conditions to detect which junction
   if (junction_type != 0 ) {
-    //FIX DELAY - USE SOMETHING ELSE;
-    delay(3000);
+    if (90 deg found) {
+      if (left-90) {
+        move(right)
+        //check - right sensors for any value
+        // if exists the belief = 1
+      }
+      else if (right-90) {
+        move(left)
+        //check - left sensors for any value
+        // if exists the belief = 2
+      }
+    }
+    else if (left-90 and right-90) {
+      belief = 3
+    }
   }
-  // return junction_type
+   return belief
 }
 
 
