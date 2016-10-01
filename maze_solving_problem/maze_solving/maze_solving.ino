@@ -37,6 +37,12 @@ int theta;
 *   what to do if it finds two vertices in the same coord area.
 *   Define functions for moving in next direction using IMU read
 *   Function to get IMU read
+*   What to do when end is reached
+*   Reset delta time whenever we reach back to a vertex from a dead end  ***TICK
+*   Don't store the vertex of dead end.  *** STORE WITH COST INF
+*   If a vertex is connected to at most one vertex which is not a dead end, update the vertex's **** DO NOTHING ABOUT THIS
+*   adjacency to 0 and remove it from the point.
+*   CHECK HOW ANGLE MATRIX IS UPDATED IN DEAD END SITUATIONS
 ********************************************END*******************************************************
 */
 
@@ -103,6 +109,8 @@ int angle_matrix [nVertices][nVertices];        //Stores angle of movement betwe
 
 int junction_count = 0;
 float *xy = new float [3];
+
+
  
 void setup()
 {
@@ -175,6 +183,7 @@ void maze_solve() {
   if (junction_type != 0) {
     //correct for pointers!!!
     get_coords(previous_junc);
+    cost = xy[2];               //Time between two adjacent vertex is the cost we're using.
     //loop to check which vertices have the same junction type
     for (int junc_finding_cnt = 0; junc_finding_cnt < type_of_junc.count(); junc_finding_cnt++) {
       // only if the junction is same do we check if the coords match
@@ -183,32 +192,47 @@ void maze_solve() {
         x = x_coords.peekindex(junc_finding_cnt);
         y = y_coords.peekindex(junc_finding_cnt);
         if (xy[0] < x + buf && xy[0] > x - buf && xy[1] < y + buf && xy[1] > y - buf) {
-          update_adj_matrix(junc_finding_cnt, previous_junc, cost);       //Check how to calculate cost
-          update_angle_matrix (junc_finding_cnt, previous_junc);
-          need_for_exploration.change_value_at(junc_finding_cnt, 0);
-          // HANDLING DIFFERENCE BETWEEN APPROCH FROM UNEXPLORED SIDE VS BY NEXT_EXPLORE STACK
-          next_vertex = next_explore.pop();
-          bool check_explore = need_for_exploration.peekindex(next_vertex);
-          while (check_explore == false){
-            next_vertex = next_explore.pop();
-            check_explore = need_for_exploration.peekindex(next_vertex);
+          if (previous_junc == junc_finding_cnt) {
+            //previous_junc = junction_count; MAY NEED CHECK DUE TO PREV JUNC NOT SAME
+            junction_count++;
+            type_of_junc.push(11);
+            need_for_exploration.push(0);
+
+            x_coords.push(INF);
+            y_coords.push(INF);
+            //CHECK HOW ANGLE MATRIX IS UPDATED
+            update_angle_matrix (junction_count, previous_junc);
+            update_adj_matrix(junction_count, previous_junc, INF);
+            previous_junc = junction_count;
           }
-          previous_junc = junc_finding_cnt;
-          new_junction = false;           //This juntion is not a new juntion.
-          //now go to next vertex!!!!
-          //    find  shortest path             --> Possible done
-          //    then actually move on that
-          //          angle btwen each set of vertices
-          //     rotate by that angle and move
-          //      Store type of each juntion as well to ensure movement in that direction
-          //    Handle what to do if it finds two vertices in the same coord area.
-          //  
-          //Send in next dirn and then break the loop
-          dijkstra(adj_matrix, junc_finding_cnt, path);       //In final run, we don't really need to use it
-          // over and over again, values stored in path after the first run should suffince
-          shortestPathMove (junc_finding_cnt, next_vertex);
-          need_for_exploration.change_value_at(current_junction, 0);
-          move (next_direction.peekindex(current_junction));        //Please define this function as soon as you get enough IMU turn.
+          else {
+            update_adj_matrix(junc_finding_cnt, previous_junc, cost);
+            update_angle_matrix (junc_finding_cnt, previous_junc);
+            need_for_exploration.change_value_at(junc_finding_cnt, 0);
+            // HANDLING DIFFERENCE BETWEEN APPROCH FROM UNEXPLORED SIDE VS BY NEXT_EXPLORE STACK
+            next_vertex = next_explore.pop();
+            bool check_explore = need_for_exploration.peekindex(next_vertex);
+            while (check_explore == false){
+              next_vertex = next_explore.pop();
+              check_explore = need_for_exploration.peekindex(next_vertex);
+            }
+            previous_junc = junc_finding_cnt;
+            new_junction = false;           //This juntion is not a new juntion.
+            //now go to next vertex!!!!
+            //    find  shortest path             --> Possible done
+            //    then actually move on that
+            //          angle btwen each set of vertices
+            //     rotate by that angle and move
+            //      Store type of each juntion as well to ensure movement in that direction
+            //    Handle what to do if it finds two vertices in the same coord area.
+            //  
+            //Send in next dirn and then break the loop
+            dijkstra(adj_matrix, junc_finding_cnt, path);       //In final run, we don't really need to use it
+            // over and over again, values stored in path after the first run should suffince
+            shortestPathMove (junc_finding_cnt, next_vertex);
+            need_for_exploration.change_value_at(current_junction, 0);
+            move (next_direction.peekindex(current_junction));        //Please define this function as soon as you get enough IMU turn.
+          }
         }
       }
     }
@@ -240,17 +264,19 @@ void new_junction_handler() {         //passing previous_junc with reference as 
   //Check for the same using return values.
   bool need_for_push = false;
   //Checking if the point is actually a junction and not simply any random point
-  for (int junction_type_check = 1; junction_type_check < 7; junction_type_check++){
+  for (int junction_type_check = 1; junction_type_check < 7; junction_type_check++) {
     if (junction_type_check == junction_type)
       need_for_push = true;              //Checked that it is a junction and thus we need to push it.
-  }
-  if (need_for_push == true){
-    need_for_exploration.push(1);
-    next_explore.push(junction_count);
-    // find cost from time taken in travel
-  }
-  else
-    need_for_exploration.push(0);
+    }
+    if (need_for_push == true){
+      need_for_exploration.push(1);
+      next_explore.push(junction_count);
+      // find cost from time taken in travel
+    }
+    else {
+      need_for_exploration.push(0);
+    }
+
   x_coords.push(xy[0]);
   y_coords.push(xy[1]);
   update_angle_matrix (junction_count, previous_junc);
