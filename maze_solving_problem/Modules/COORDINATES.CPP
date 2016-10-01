@@ -1,11 +1,11 @@
 // declare a global variable with name initial_time and initialize it with zero before using this function
 // include math.h
+#define pi 3.14 // declare this variable as a global variable	
 void exploration(int index){ 
-	# define pi 3.14; // declare this variable as a global variable	
- 	int final_time; 
- 	int delta_time, theta; 
+	int final_time; 
+ 	int delta_time, teeta; 
  	float x, y; 
- 	theta=fx_imu();  // function to calculate theta 
+ 	theeta=fx_imu();  // function to calculate theta 
  	final_time =millis(); 
  	delta_time=final_time-initial_time; // finding delta time 
  	xy[2]=delta_time;
@@ -16,3 +16,6 @@ void exploration(int index){
  	xy[1]=y; 
  }	 		      
 
+
+//Fixed syntax error in coordinates.cpp
+//Added Dijkstra's algorithm module to maze_solve/modules

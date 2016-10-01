@@ -175,6 +175,7 @@ void maze_solve() {
   if (junction_type != 0) {
     //correct for pointers!!!
     get_coords(previous_junc);
+    cost = xy[2];               //Time between two adjacent vertex is the cost we're using.
     //loop to check which vertices have the same junction type
     for (int junc_finding_cnt = 0; junc_finding_cnt < type_of_junc.count(); junc_finding_cnt++) {
       // only if the junction is same do we check if the coords match
