@@ -8,6 +8,7 @@
 #define leftMotorB 9
 #define leftMotorPWM 11
 #define stby 8
+#define pi 3.14
 //Add another matrix with all turns
 
 //Incorporating Dijkstra
@@ -15,6 +16,7 @@
 #define INF 10000
 int next_junction;
 int current_junction;
+int initial_time;       //Required for coordinates
 /*
 ***********************************POSSIBLE CAUSES OF ERRORS******************************************
 *   In function update_angle_matrix: updating theeta from current to last might be wrong
@@ -22,6 +24,7 @@ int current_junction;
 *   If it happens, check new_junction_handler and maze_solve
 *   Infinity might be too small - may use math.h for inf
 *   Millis might exceed maximum value of integer
+*   Angle push possibly wrong, Theta is possibly storing absolute imuread.
 ********************************************END*******************************************************
 */
 
@@ -30,7 +33,7 @@ int current_junction;
 *   HANDLING DIFFERENCE BETWEEN APPROCH FROM UNEXPLORED SIDE VS BY NEXT_EXPLORE STACK
 *    handle default configs
 *   what to do if it finds two vertices in the same coord area.
-*   
+*   Define functions for moving in next direction using IMU read
 ********************************************END*******************************************************
 */
 
@@ -43,7 +46,7 @@ QTRSensorsRC qtr((unsigned char[]) {A0,4, A1, A2, A3, A4, 2, A5}, 8, 2500);
 //If possible efficiently, convert to local variables
 StackArray <int> shortest_path;
 int path[nVertices];
-
+int previous_junc = 0;
 int lastError = 0;
 float kp = 0.1;
 float kd = 1.7;
@@ -113,6 +116,7 @@ void setup()
     qtr.calibrate();
     delay(20);
   }
+  initial_time = millis();
 }
 
  
@@ -162,14 +166,13 @@ void maze_solve() {
   int buf = 7;
   int x, y;
   int next_vertex;
-  int previous_junc;
   int cost;
   int vertex_index;       //stores current vertex
   bool new_junction = true;  
   junction_type = check_junction();
   if (junction_type != 0) {
     //correct for pointers!!!
-    get_coords();
+    get_coords(previous_junc);
     //loop to check which vertices have the same junction type
     for (int junc_finding_cnt = 0; junc_finding_cnt < type_of_junc.count(); junc_finding_cnt++) {
       // only if the junction is same do we check if the coords match
@@ -197,6 +200,8 @@ void maze_solve() {
           dijkstra(adj_matrix, current_vertex, path);       //In final run, we don't really need to use it
           // over and over again, values stored in path after the first run should suffince
           shortestPathMove (current_vertex, next_vertex);
+          need_for_exploration.change_value_at(current_junction, 0);
+          move (next_direction.peekindex(current_junction));        //Please define this function as soon as you get enough IMU turn.
         }
       }
     }
@@ -220,8 +225,8 @@ int check_junction_similarity (int junct){
   return 0;
 }
 
-//I hope that x-coord, y-coord and theeta corresponds to the correct vertex. If not, then this code is fucked up.
-void new_junction_handler(int &previous_junc) {         //passing previous_junc with reference as we need to update the value.
+//I hope that x-coord, y-coord and theta corresponds to the correct vertex. If not, then this code is fucked up.
+void new_junction_handler() {         //passing previous_junc with reference as we need to update the value.
   type_of_junc.push(junction_type);
   junction_setting();
   //Push to next_explore only if the new junction is actually a juntion.
@@ -239,6 +244,8 @@ void new_junction_handler(int &previous_junc) {         //passing previous_junc 
   }
   else
     need_for_exploration.push(0);
+  x_coords.push(xy[0]);
+  y_coords.push(xy[1]);
   update_angle_matrix (junction_count, previous_count);
   update_adj_matrix(junction_count, previous_junc, cost);
   previous_junc = junction_count;
@@ -247,9 +254,9 @@ void new_junction_handler(int &previous_junc) {         //passing previous_junc 
 }
 
 void update_angle_matrix (int present_juntion, int last_junction){
-  angle_matrix[last_junction][present_juntion] = theeta;        //stores angle made coming from vertex A to B
-  angle_matrix[present_juntion][last_junction] = (180+theeta) % 360;    //Stores angle that will be made if we're coming from B to A
-  //180 + theeta can be wrong, check this part if there is some error while going from one vertex to another.
+  angle_matrix[last_junction][present_juntion] = theta;        //stores angle made coming from vertex A to B
+  angle_matrix[present_juntion][last_junction] = (180+theta) % 360;    //Stores angle that will be made if we're coming from B to A
+  //180 + theta can be wrong, check this part if there is some error while going from one vertex to another.
 }
 
 void update_adj_matrix(int junc1, int junc2, int cost) {
@@ -259,11 +266,6 @@ void update_adj_matrix(int junc1, int junc2, int cost) {
 
 }
 
-float* get_coords() {
-  float xy[2];
-  //write code for getting coords
-  return xy;
-}
 
 //Update junction_setting
 void junction_setting() {
@@ -326,9 +328,20 @@ int check_junction() {
   // return junction_type
 }
 
-
-
-
+void get_coords(int index){ 
+  int final_time; 
+  int delta_time, theta; 
+  float x, y; 
+  theta=fx_imu();  // function to calculate theta 
+  final_time =millis(); 
+  delta_time=final_time-initial_time; // finding delta time 
+  xy[2]=delta_time;
+  initial_time=final_time; 
+  x=x_coordinate.peekindex(i)+delta_time1*sin(theta*pi/180); // calculating the x and y coordinate of the point and pushing them into stack
+  y=y_coordinate.peekindex(i)+delta_time1*cos(theta*pi/180);
+  xy[0]=x;
+  xy[1]=y; 
+}            
 
 void stop1() {
   digitalWrite(rightMotorF,LOW);
@@ -436,3 +449,4 @@ int shortestPathMove (int src, int dest){
     current_junction = next_junction;
   }
 }
+
