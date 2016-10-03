@@ -9,7 +9,7 @@
 #define leftMotorPWM 11
 #define stby 8
 #define pi 3.14
-//Add another matrix with all turns
+//Add another matrix with all turns.
 
 //Incorporating Dijkstra
 #define nVertices 6
