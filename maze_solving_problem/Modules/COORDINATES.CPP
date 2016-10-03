@@ -3,9 +3,9 @@
 #define pi 3.14 // declare this variable as a global variable	
 void exploration(int index){ 
 	int final_time; 
- 	int delta_time, teeta; 
+ 	int delta_time, theta; 
  	float x, y; 
- 	theeta=fx_imu();  // function to calculate theta 
+ 	theta=fx_imu();  // function to calculate theta 
  	final_time =millis(); 
  	delta_time=final_time-initial_time; // finding delta time 
  	xy[2]=delta_time;

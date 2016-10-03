@@ -107,7 +107,7 @@ StackArray<int> type_of_junc;
 int adj_matrix[nVertices][nVertices];           //changing from 20 to arbitrary constant
 int angle_matrix [nVertices][nVertices];        //Stores angle of movement between two adjacent points
 
-int junction_count = 0;
+int junction_count = 0;                         //Stores the number of detected junctions
 float *xy = new float [3];
 
 

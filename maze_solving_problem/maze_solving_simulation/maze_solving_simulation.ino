@@ -13,7 +13,7 @@
 
 //Incorporating Dijkstra
 #define nVertices 6
-#define INF 10000
+#define INF 50000
 int next_junction;
 int current_junction;
 int initial_time;       //Required for coordinates
@@ -211,14 +211,14 @@ void maze_solve() {
       //correct for pointers!!!
       get_coords(previous_junc, i);
       cost = xy[2];               //Time between two adjacent vertex is the cost we're using.
- /*     Serial.print("vertex");
+      Serial.println("vertex");
       Serial.print("\t\t\t");
       Serial.print(xy[0]);
       Serial.print("\t\t\t");
       Serial.print(xy[1]);
       Serial.print("\t\t\t");
       Serial.print(xy[2]);
-      Serial.print("\t\t\t");*/
+      Serial.print("\t\t\t");
       //Serial.println(theta);
       //loop to check which vertices have the same junction type
       for (int junc_finding_cnt = 0; junc_finding_cnt < type_of_junc.count(); junc_finding_cnt++) {
@@ -399,9 +399,9 @@ int check_junction() {
 }
 
 void get_coords(int previous_junc_index, int sim){
-  Serial.print(previous_junc_index);
-  Serial.print("\t");
-  Serial.println(sim);
+  //Serial.print(previous_junc_index);
+  //Serial.print("\t");
+  //Serial.println(sim);
   int final_time; 
   int delta_time;
   int delta_theta; 
@@ -414,8 +414,8 @@ void get_coords(int previous_junc_index, int sim){
   //delta_time=final_time-initial_time; // finding delta time 
   xy[2]=delta_time;
   //initial_time=final_time; 
-  x = x_coords.peekindex(previous_junc_index)+delta_time*sin(theta*pi/180); // calculating the x and y coordinate of the point and pushing them into stack
-  y = y_coords.peekindex(previous_junc_index)+delta_time*cos(theta*pi/180);
+  x = x_coords.peekindex(previous_junc_index)+delta_time*sin(delta_theta*pi/180); // calculating the x and y coordinate of the point and pushing them into stack
+  y = y_coords.peekindex(previous_junc_index)+delta_time*cos(delta_theta*pi/180);
   xy[0]=x;
   xy[1]=y; 
 }            
