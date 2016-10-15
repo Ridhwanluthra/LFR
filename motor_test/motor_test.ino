@@ -1,19 +1,19 @@
 
-#define rightMotor2 7
-#define rightMotor1 6
-#define rightMotorPWM 5
-#define leftMotor2 10
-#define leftMotor1 9
-#define leftMotorPWM 11
-#define stby 8
+#define rightMotorF 7
+#define rightMotorB 8
+#define rightMotorPWM 9
+#define leftMotorF 4
+#define leftMotorB 5
+#define leftMotorPWM 3
+#define stby 6
 
 
 void setup() {
-pinMode(rightMotor2, OUTPUT);
-  pinMode(rightMotor1, OUTPUT);
+pinMode(rightMotorF, OUTPUT);
+  pinMode(rightMotorB, OUTPUT);
   pinMode(rightMotorPWM, OUTPUT);
-  pinMode(leftMotor2, OUTPUT);
-  pinMode(leftMotor1, OUTPUT);
+  pinMode(leftMotorF, OUTPUT);
+  pinMode(leftMotorB, OUTPUT);
   pinMode(leftMotorPWM, OUTPUT);
   pinMode(stby,OUTPUT);
   
@@ -21,14 +21,14 @@ pinMode(rightMotor2, OUTPUT);
 
 void loop() {
   //motor motion
-  digitalWrite(rightMotor2, HIGH);
-  digitalWrite(rightMotor1, LOW);
-  analogWrite(rightMotorPWM,50);
+  digitalWrite(rightMotorF, HIGH);
+  digitalWrite(rightMotorB, LOW);
+  analogWrite(rightMotorPWM,100);
 
   
-   digitalWrite(leftMotor2, HIGH);
-  digitalWrite(leftMotor1, LOW);
-  analogWrite(leftMotorPWM, 50);
+   digitalWrite(leftMotorF, HIGH);
+  digitalWrite(leftMotorB, LOW);
+  analogWrite(leftMotorPWM, 100);
   digitalWrite(stby,HIGH);
   
 

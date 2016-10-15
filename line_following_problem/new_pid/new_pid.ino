@@ -1,12 +1,12 @@
 #include <QTRSensors.h>
 
-#define rightMotorF 7
-#define rightMotorB 6
-#define rightMotorPWM 5
-#define leftMotorF 10
-#define leftMotorB 9
-#define leftMotorPWM 11
-#define stby 8
+#define rightMotorF 5
+#define rightMotorB 4
+#define rightMotorPWM 9
+#define leftMotorF 8
+#define leftMotorB 7
+#define leftMotorPWM 3
+#define stby 6
 
 QTRSensorsRC qtr((unsigned char[]) {A0,4, A1, A2, A3, A4, 2, A5}, 8, 2500);
  
@@ -29,7 +29,7 @@ void setup()
 
 int lastError = 0;
 float kp = 0.1;  // 0.08 // for small = 0.1
-float kd = 8; // 1.0   // for small = 1.7
+float kd = 5; // 1.0   // for small = 1.7
 float ki = 0;
 int integral = 0;
 int derivative = 0;
@@ -47,7 +47,7 @@ void loop()
   Serial.println(power_difference);
   lastError = error;
   
-  const int maximum = 200;
+  const int maximum = 100;
   
   if (power_difference > maximum)
     power_difference = maximum;
