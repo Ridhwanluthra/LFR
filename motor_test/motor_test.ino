@@ -1,10 +1,10 @@
 
-#define rightMotorF 7
-#define rightMotorB 8
-#define rightMotorPWM 9
-#define leftMotorF 4
-#define leftMotorB 5
-#define leftMotorPWM 3
+#define rightMotorF 4
+#define rightMotorB 5
+#define rightMotorPWM 3
+#define leftMotorF 7
+#define leftMotorB 8
+#define leftMotorPWM 9
 #define stby 6
 
 
