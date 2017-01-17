@@ -39,48 +39,63 @@ void loop()
   unsigned int sensors[8];
   const int maxCount = 10;
   unsigned int position = qtr.readLine(sensors, QTR_EMITTERS_ON,1);
- /*for(int i=0;i<8;i++)
+ for(int i=0;i<8;i++)
  {
    Serial.print(sensors[i]);
    Serial.print("\t");
  }
- */
+ 
   int error = int(position) - 3500;
   static int iterCount = 0; 
   int leftIter[maxCount];
   int rightIter[maxCount];
   iterCount %= maxCount;           //Ensures iteration count remains within range
-  leftIter[iterCount] = sensors[0];
-  rightIter[iterCount] = sensors[7];
-  //Find a less interfering method to do the following
-  bool acuteFlag = true;
-  for (int i = 0; i < maxCount; i++) {
-    if (sensors[i]) {
-      acuteFlag = false;
-      break;
-    }
-  }
+  leftIter[iterCount] = sensors[7];
+  rightIter[iterCount] = sensors[0];
   enum NextTurn {left, right, none};
-  NextTurn nextTurn = none;
-  if (acuteFlag) {
-    for (int i = 0; i < maxCount; i++) {
-      if (leftIter[i]) {
-        nextTurn = left;
-        break;
-      }
-      if (rightIter[i]) {
-        nextTurn = right;
-      }
+  static NextTurn nextTurn = none;
+  if (iterCount > maxCount) {
+    nextTurn = none;
+    iterCount = 0;
+  }
+  if (sensors[0] < 300) {
+    iterCount = 1;
+    nextTurn = left;
+  } else if (sensors[7] < 300) {
+    iterCount = 1;
+    nextTurn = right;
+  }
+  bool flag = true;
+  for (int i = 0; i < 8; i++) {
+    if (sensors[i] < 700) {
+      flag = false;
+      break;
     }
   }
-  switch (nextTurn) {
-    case none:
-      break;
-    case left:
-      //Turn left
-    case right:
-      //Turn right
-    default:
+  if (flag) {
+    switch (nextTurn) {
+      case none:
+        break;
+    
+      case left:
+        digitalWrite(rightMotorF, HIGH);
+        digitalWrite(rightMotorB, LOW);
+        analogWrite(rightMotorPWM,150);
+        delay(400);
+        digitalWrite(leftMotorF, LOW);
+        digitalWrite(leftMotorB, LOW);
+        analogWrite(leftMotorPWM, 0);      
+      case right:
+        digitalWrite(rightMotorF, LOW);
+        digitalWrite(rightMotorB, LOW);
+        analogWrite(rightMotorPWM,0);
+        digitalWrite(leftMotorF, HIGH);
+        digitalWrite(leftMotorB, LOW);
+        analogWrite(leftMotorPWM, 150);
+        delay(400);   
+      default:
+        break;
+    }
   }
   iterCount++;
   integral += error;
@@ -94,8 +109,8 @@ void loop()
     power_difference = maximum;
   if (power_difference < -maximum)
     power_difference = -maximum;  
-  //Serial.print(power_difference);
-  //Serial.println("");
+  Serial.print(power_difference);
+  Serial.println("");
   if (power_difference >0) {
     digitalWrite(rightMotorF, HIGH);
     digitalWrite(rightMotorB, LOW);
