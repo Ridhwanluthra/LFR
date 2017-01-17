@@ -37,7 +37,7 @@ int derivative = 0;
 void loop()
 {
   unsigned int sensors[8];
-  
+  const int maxCount = 10;
   unsigned int position = qtr.readLine(sensors, QTR_EMITTERS_ON,1);
  /*for(int i=0;i<8;i++)
  {
@@ -46,7 +46,42 @@ void loop()
  }
  */
   int error = int(position) - 3500;
-  
+  static int iterCount = 0; 
+  int leftIter[maxCount];
+  int rightIter[maxCount];
+  iterCount %= maxCount;           //Ensures iteration count remains within range
+  leftIter[iterCount] = sensors[0];
+  rightIter[iterCount] = sensors[7];
+  //Find a less interfering method to do the following
+  bool acuteFlag = true;
+  for (int i = 0; i < maxCount; i++) {
+    if (sensors[i]) {
+      acuteFlag = false;
+      break;
+    }
+  }
+  enum NextTurn {left, right, none};
+  NextTurn nextTurn = none;
+  if (acuteFlag) {
+    for (int i = 0; i < maxCount; i++) {
+      if (leftIter[i]) {
+        nextTurn = left;
+        break;
+      }
+      if (rightIter[i]) {
+        nextTurn = right;
+      }
+    }
+  }
+  switch (nextTurn) {
+    case none:
+      break;
+    case left:
+      //Turn left
+    case right:
+      //Turn right
+    default:
+  }
   integral += error;
   derivative = error - lastError;
   int power_difference = kp * error + ki * integral + kd * derivative;
