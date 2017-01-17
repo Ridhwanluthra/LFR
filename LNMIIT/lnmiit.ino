@@ -37,33 +37,44 @@ int derivative = 0;
 void loop()
 {
   unsigned int sensors[8];
-  const int maxCount = 10;
+  const int maxCount = 11;
   unsigned int position = qtr.readLine(sensors, QTR_EMITTERS_ON,1);
- for(int i=0;i<8;i++)
- {
-   Serial.print(sensors[i]);
-   Serial.print("\t");
- }
+  for(int i=0;i<8;i++)
+  {
+     Serial.print(sensors[i]);
+     Serial.print("\t");
+  }
  
   int error = int(position) - 3500;
   static int iterCount = 0; 
   int leftIter[maxCount];
   int rightIter[maxCount];
+  static int lCount = 0, rCount = 0;
+  const int lSensor = 0;
+  const int rSensor = 7;
   iterCount %= maxCount;           //Ensures iteration count remains within range
-  leftIter[iterCount] = sensors[7];
-  rightIter[iterCount] = sensors[0];
+  leftIter[iterCount] = sensors[lSensor];
+  rightIter[iterCount] = sensors[rSensor];
   enum NextTurn {left, right, none};
   static NextTurn nextTurn = none;
-  if (iterCount > maxCount) {
+  if (iterCount >=  maxCount-1) {
     nextTurn = none;
     iterCount = 0;
-  }
-  if (sensors[0] < 300) {
+    lCount = 0;
+    rCount = 0;
+  }/*
+  if (sensors[lSensor] < 300) {
     iterCount = 1;
     nextTurn = left;
-  } else if (sensors[7] < 300) {
+  } else if (sensors[rSensor] < 300) {
     iterCount = 1;
     nextTurn = right;
+  }*/
+  if (sensors[lSensor] < 300) {
+    lCount++;
+  }
+  if (sensors[rSensor] < 300) {
+    rCount++;
   }
   bool flag = true;
   for (int i = 0; i < 8; i++) {
@@ -73,6 +84,7 @@ void loop()
     }
   }
   if (flag) {
+    nextTurn = (lCount > rCount ? left : right);
     switch (nextTurn) {
       case none:
         break;
@@ -81,7 +93,6 @@ void loop()
         digitalWrite(rightMotorF, HIGH);
         digitalWrite(rightMotorB, LOW);
         analogWrite(rightMotorPWM,150);
-        delay(400);
         digitalWrite(leftMotorF, LOW);
         digitalWrite(leftMotorB, LOW);
         analogWrite(leftMotorPWM, 0);      
@@ -92,7 +103,6 @@ void loop()
         digitalWrite(leftMotorF, HIGH);
         digitalWrite(leftMotorB, LOW);
         analogWrite(leftMotorPWM, 150);
-        delay(400);   
       default:
         break;
     }
