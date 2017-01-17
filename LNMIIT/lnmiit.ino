@@ -82,6 +82,7 @@ void loop()
       //Turn right
     default:
   }
+  iterCount++;
   integral += error;
   derivative = error - lastError;
   int power_difference = kp * error + ki * integral + kd * derivative;
