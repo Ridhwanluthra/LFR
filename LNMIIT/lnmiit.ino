@@ -37,32 +37,27 @@ int derivative = 0;
 void loop()
 {
   unsigned int sensors[8];
-  const int maxCount = 11;
-  unsigned int position = qtr.readLine(sensors, QTR_EMITTERS_ON,1);
-  for(int i=0;i<8;i++)
+  const int maxCount = 4;
+  unsigned int position = qtr.readLine(sensors, QTR_EMITTERS_ON);
+  /*for(int i=0;i<8;i++)
   {
      Serial.print(sensors[i]);
      Serial.print("\t");
-  }
+  }*/
  
   int error = int(position) - 3500;
   static int iterCount = 0; 
   int leftIter[maxCount];
   int rightIter[maxCount];
   static int lCount = 0, rCount = 0;
-  const int lSensor = 0;
-  const int rSensor = 7;
+  const int lSensor = 7;
+  const int rSensor = 0;
   iterCount %= maxCount;           //Ensures iteration count remains within range
   leftIter[iterCount] = sensors[lSensor];
   rightIter[iterCount] = sensors[rSensor];
   enum NextTurn {left, right, none};
   static NextTurn nextTurn = none;
-  if (iterCount >=  maxCount-1) {
-    nextTurn = none;
-    iterCount = 0;
-    lCount = 0;
-    rCount = 0;
-  }/*
+  /*
   if (sensors[lSensor] < 300) {
     iterCount = 1;
     nextTurn = left;
@@ -70,11 +65,21 @@ void loop()
     iterCount = 1;
     nextTurn = right;
   }*/
+  int lSensorValue[maxCount], rSensorValue[maxCount];
   if (sensors[lSensor] < 300) {
+    leftIter[iterCount] = sensors[lSensor];
     lCount++;
   }
   if (sensors[rSensor] < 300) {
+    rightIter[iterCount] = sensors[rSensor];
     rCount++;
+  }
+  if (leftIter[(iterCount+1)%maxCount] < 300) {
+    nextTurn = left;
+    lCount--;
+  }else if (rightIter[(iterCount+1)%maxCount] < 300) {
+    nextTurn = right;
+    rCount--;
   }
   bool flag = true;
   for (int i = 0; i < 8; i++) {
@@ -84,7 +89,6 @@ void loop()
     }
   }
   if (flag) {
-    nextTurn = (lCount > rCount ? left : right);
     switch (nextTurn) {
       case none:
         break;
@@ -113,14 +117,14 @@ void loop()
   int power_difference = kp * error + ki * integral + kd * derivative;
   lastError = error;
   
-  const int maximum = 100;
+  const int maximum = 200;
   
   if (power_difference > maximum)
     power_difference = maximum;
   if (power_difference < -maximum)
     power_difference = -maximum;  
-  Serial.print(power_difference);
-  Serial.println("");
+  //Serial.print(power_difference);
+  //Serial.println("");
   if (power_difference >0) {
     digitalWrite(rightMotorF, HIGH);
     digitalWrite(rightMotorB, LOW);
