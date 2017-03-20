@@ -8,7 +8,7 @@
 #define leftMotorPWM 3
 #define stby 6
 
-QTRSensorsRC qtr((unsigned char[]) {A0, 11, A1, A2, A3, A4, 12, A5}, 8, 2500);
+QTRSensorsRC qtr((unsigned char[]) {A0, 12, A2, A3, A4, A5, 11, A1}, 8, 2500);
  
 void setup()
 {
@@ -28,26 +28,27 @@ void setup()
 }
 
 int lastError = 0;
-float kp = 0.1;  // 0.08 // for small = 0.1
-float kd = 5; // 1.0   // for small = 1.7
-float ki = 0;
+float kp = 0.05;  // 0.08 // for small = 0.1
+float kd = 1.5; // 1.0   // for small = 1.7
+float ki = 0.001;
 int integral = 0;
 int derivative = 0;
+int error, power_difference;
  
 void loop()
 {
   unsigned int sensors[8];
   
-  int position = qtr.readLine(sensors,QTR_EMITTERS_ON,1);
+  int position = qtr.readLine(sensors, QTR_EMITTERS_ON, 1);
  
-  int error = int(position) - 3500;
+  error = 3500 - int(position);
   integral += error;
   derivative = error - lastError;
-  int power_difference = kp * error + ki * integral + kd * derivative;  
+  power_difference = kp * error + ki * integral + kd * derivative;  
   Serial.println(power_difference);
   lastError = error;
   
-  const int maximum = 200;
+  const int maximum = 100;
   
   if (power_difference > maximum)
     power_difference = maximum;
@@ -73,3 +74,4 @@ void loop()
     digitalWrite(stby,HIGH);
   }
 }
+

@@ -1,11 +1,11 @@
 
-#define rightMotor2 7
-#define rightMotor1 6
-#define rightMotorPWM 5
-#define leftMotor2 10
-#define leftMotor1 9
-#define leftMotorPWM 11
-#define stby 8
+#define rightMotor2 4
+#define rightMotor1 5
+#define rightMotorPWM 9
+#define leftMotor2 7
+#define leftMotor1 8
+#define leftMotorPWM 3
+#define stby 6
 
 
 void setup() {
