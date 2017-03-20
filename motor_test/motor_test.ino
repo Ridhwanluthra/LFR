@@ -9,11 +9,11 @@
 
 
 void setup() {
-pinMode(rightMotor2, OUTPUT);
-  pinMode(rightMotor1, OUTPUT);
+pinMode(rightMotorF, OUTPUT);
+  pinMode(rightMotorB, OUTPUT);
   pinMode(rightMotorPWM, OUTPUT);
-  pinMode(leftMotor2, OUTPUT);
-  pinMode(leftMotor1, OUTPUT);
+  pinMode(leftMotorF, OUTPUT);
+  pinMode(leftMotorB, OUTPUT);
   pinMode(leftMotorPWM, OUTPUT);
   pinMode(stby,OUTPUT);
   
@@ -21,14 +21,14 @@ pinMode(rightMotor2, OUTPUT);
 
 void loop() {
   //motor motion
-  digitalWrite(rightMotor2, HIGH);
-  digitalWrite(rightMotor1, LOW);
-  analogWrite(rightMotorPWM,50);
+  digitalWrite(rightMotorF, HIGH);
+  digitalWrite(rightMotorB, LOW);
+  analogWrite(rightMotorPWM,100);
 
   
-   digitalWrite(leftMotor2, HIGH);
-  digitalWrite(leftMotor1, LOW);
-  analogWrite(leftMotorPWM, 50);
+   digitalWrite(leftMotorF, HIGH);
+  digitalWrite(leftMotorB, LOW);
+  analogWrite(leftMotorPWM, 100);
   digitalWrite(stby,HIGH);
   
 

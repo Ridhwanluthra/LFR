@@ -1,14 +1,14 @@
 #include <QTRSensors.h>
 
-#define rightMotorF 4
-#define rightMotorB 5
+#define rightMotorF 5
+#define rightMotorB 4
 #define rightMotorPWM 9
-#define leftMotorF 7
-#define leftMotorB 8
+#define leftMotorF 8
+#define leftMotorB 7
 #define leftMotorPWM 3
 #define stby 6
 
-QTRSensorsRC qtr((unsigned char[]) {A0, 11, A1, A2, A3, A4, 12, A5}, 8, 2500);
+QTRSensorsRC qtr((unsigned char[]) {A0,12, A1, A2, A3, A4, 11, A5}, 8, 2500);
  
 void setup()
 {
@@ -19,7 +19,6 @@ void setup()
   pinMode(leftMotorB, OUTPUT);
   pinMode(leftMotorPWM, OUTPUT);
   pinMode(stby,OUTPUT);
-  Serial.begin(9600);
   for (int i = 0; i < 100; i++)  // make the calibration take about 5 seconds
   {
     qtr.calibrate();
@@ -38,13 +37,12 @@ void loop()
 {
   unsigned int sensors[8];
   
-  int position = qtr.readLine(sensors,QTR_EMITTERS_ON,1);
+  unsigned int position = qtr.readLine(sensors, QTR_EMITTERS_ON);
  
   int error = int(position) - 3500;
   integral += error;
   derivative = error - lastError;
-  int power_difference = kp * error + ki * integral + kd * derivative;  
-  Serial.println(power_difference);
+  int power_difference = kp * error + ki * integral + kd * derivative;
   lastError = error;
   
   const int maximum = 100;
@@ -73,3 +71,4 @@ void loop()
     digitalWrite(stby,HIGH);
   }
 }
+
