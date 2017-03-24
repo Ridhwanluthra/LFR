@@ -74,12 +74,13 @@ void loop() {
   }
 
   if (!wall_sure) {
-    left_line_follow(120);
+    bias_line_follow(120, true);
   }
   else {
     wall_follow(70);
     if (x < set_distance && (sensors[0] > 700 || sensors[1] > 700 || sensors[2] > 700 || sensors[3] > 700 || sensors[4] > 700 || sensors[5] > 700 || sensors[6] > 700 || sensors[7] > 700)) {
       wall_sure = false;
+      count = 0;
     }
   }
 }
@@ -143,7 +144,7 @@ void line_follow(int maximum) {
   to_motors(power_difference, maximum);
 }
 
-void left_line_follow(int maximum) {
+void bias_line_follow(int maximum, bool right) {
   static int lastError;
   static int integral;
   unsigned int position = qtr.readLine(sensors, QTR_EMITTERS_ON,0);
@@ -166,11 +167,20 @@ void left_line_follow(int maximum) {
   }
   iter_count++;
   if (!u_turn){
-    check_turn_left();
-    for(int i = 0; i < 8; i++) {
-      sensors[i] = 0;
+    if (right) {
+      check_turn_right();
+      for(int i = 0; i < 8; i++) {
+        sensors[i] = 0;
+      }
+      sensors[0] = 1000;
     }
-    sensors[7] = 1000;
+    else {
+      check_turn_left();
+      for(int i = 0; i < 8; i++) {
+        sensors[i] = 0;
+      }
+      sensors[7] = 1000;
+    }
   }
   
   to_motors(power_difference, maximum);
@@ -193,6 +203,28 @@ void check_turn_left() {
     digitalWrite(leftMotorF, HIGH);
     digitalWrite(leftMotorB, LOW);
     analogWrite(leftMotorPWM, 0);
+    digitalWrite(stby,HIGH);
+    delay(300);
+  }
+}
+
+void check_turn_right() {
+  if (sensors[7] > 700 && sensors[6] > 700 && sensors[5] > 700 && sensors[4] > 700 && sensors[3] > 700) {
+    digitalWrite(rightMotorF, HIGH);
+    digitalWrite(rightMotorB, LOW);
+    analogWrite(rightMotorPWM, 0);
+    digitalWrite(leftMotorF, HIGH);
+    digitalWrite(leftMotorB, LOW);
+    analogWrite(leftMotorPWM, 0);
+    digitalWrite(stby,HIGH);
+    delay(30);
+
+    digitalWrite(rightMotorF, HIGH);
+    digitalWrite(rightMotorB, LOW);
+    analogWrite(rightMotorPWM, 0);
+    digitalWrite(leftMotorF, HIGH);
+    digitalWrite(leftMotorB, LOW);
+    analogWrite(leftMotorPWM, 140);
     digitalWrite(stby,HIGH);
     delay(300);
   }
