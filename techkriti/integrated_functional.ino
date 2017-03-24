@@ -38,37 +38,32 @@ void setup() {
 unsigned int sensors[8];
 
 //=====Constants for Line Following====================================================
-int lastError = 0;
-float kp = 0.05;  // 0.08 // for small = 0.1
-float kd = 4; // 1.0   // for small = 1.7
-float ki = 0;
-int integral = 0;
-int z=0;
+#define kp 0.05
+#define kd 4
+#define ki 0
 //==============xxxx=========xxxx=============xxxx===================================
 
 int countfinal=0;
 //======Constants for wall following===================================================
-int x = 400;
+int x;
 int y;
-int lastcount=0;
 bool wall_sure = false;
+bool wall_found = false;
 
-int lastErrorW = 0;
-float kpW = 0.5;
-float kdW = 0;
-float kiW = 0;
-int integralW = 0;
+#define kpW 0.5
+#define kdW 0
+#define kiW 0
 //============xxxx======xxxx===========xxxx============================================
 int count = 0;
 
-#define set_distance = 150
+#define set_distance 150
 
 void loop() {
   x = analogRead(rightSensor);
   y = digitalRead(forwardSensor);
 
   if(x > set_distance) {
-    count = lastcount + 1;
+    count++;
   }
   else {
     count = 0;
@@ -77,33 +72,33 @@ void loop() {
   {
     wall_sure = true;
   }
-  lastcount = count;
+
   if (!wall_sure) {
     left_line_follow(120);
   }
   else {
     wall_follow(70);
-    if (x < set_distance && sensors[0] < 200 && sensors[1] < 200 && sensors[2] < 200 && sensors[3] < 200 && sensors[4] < 200 && sensors[5] < 200 && sensors[6] < 200 && sensors[7] < 200) {
-      
+    if (x < set_distance && (sensors[0] > 700 || sensors[1] > 700 || sensors[2] > 700 || sensors[3] > 700 || sensors[4] > 700 || sensors[5] > 700 || sensors[6] > 700 || sensors[7] > 700)) {
+      wall_sure = false;
     }
   }
 }
 
 void simple_case() {
+  static int j;
   if(y == 0) {
-    count = lastcount + 1;
+    j++;
   }
   else {
-    count = 0;
-    wall_sure = 0;
+    j = 0;
+    wall_found = false;
   }
-  if(count > 5)
+  if(j > 5)
   {
-    wall_sure = 1;
+    wall_found = true;
   }
-  lastcount = count;
 
-  if(wall_sure == 1) {
+  if(wall_found) {
     digitalWrite(rightMotorF, HIGH);
     digitalWrite(rightMotorB, LOW);
     analogWrite(rightMotorPWM,100);
@@ -117,6 +112,8 @@ void simple_case() {
 }
 
 void wall_follow(int maximum) {
+  static int lastErrorW;
+  static int integralW;
 
   // simple_case();
   
@@ -132,6 +129,8 @@ void wall_follow(int maximum) {
 
 
 void line_follow(int maximum) {
+  static int lastError;
+  static int integral;
   unsigned int position = qtr.readLine(sensors, QTR_EMITTERS_ON,0);
 
   int error = int(position) - 3500;
@@ -145,6 +144,8 @@ void line_follow(int maximum) {
 }
 
 void left_line_follow(int maximum) {
+  static int lastError;
+  static int integral;
   unsigned int position = qtr.readLine(sensors, QTR_EMITTERS_ON,0);
 
   int error = int(position) - 3500;
@@ -198,6 +199,8 @@ void check_turn_left() {
 }
 
 // void delay_line_follow(int maximum) {
+//   static int lastError;
+//   static int integral;
 //   int i = 0;
 //   while (1) {
 //     unsigned int position = qtr.readLine(sensors, QTR_EMITTERS_ON,0);
@@ -219,6 +222,8 @@ void check_turn_left() {
 // }
 
 void biased_line_follow(int maximum) {
+  static int lastError;
+  static int integral;
   bool right = false;
   for (int i = 300; i > 0; i--) {
     if (sensors[7] > 700) {
