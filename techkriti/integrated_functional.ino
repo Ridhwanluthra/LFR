@@ -55,6 +55,7 @@ bool wall_found = false;
 #define kiW 0
 //============xxxx======xxxx===========xxxx============================================
 int count = 0;
+int led_iter = 0;
 
 #define set_distance 150
 
@@ -73,16 +74,35 @@ void loop() {
     wall_sure = true;
   }
 
+  
+
   if (!wall_sure) {
     bias_line_follow(120, true);
   }
   else {
     wall_follow(70);
+    if (sensors[0] > 700 && sensors[1] > 700 && sensors[2] > 700 && sensors[3] > 700 && sensors[4] > 700 && sensors[5] > 700 && sensors[6] > 700 && sensors[7] > 700) {
+      led_iter++;
+    }
+    if (led_iter > 10) {
+      on_led();
+    }
     if (x < set_distance && (sensors[0] > 700 || sensors[1] > 700 || sensors[2] > 700 || sensors[3] > 700 || sensors[4] > 700 || sensors[5] > 700 || sensors[6] > 700 || sensors[7] > 700)) {
       wall_sure = false;
       count = 0;
     }
   }
+}
+
+void on_led() {
+  digitalWrite(rightMotorF, HIGH);
+  digitalWrite(rightMotorB, LOW);
+  analogWrite(rightMotorPWM, 0);
+  digitalWrite(leftMotorF, HIGH);
+  digitalWrite(leftMotorB, LOW);
+  analogWrite(leftMotorPWM, 0);
+  digitalWrite(stby,HIGH);
+  delay(5000);
 }
 
 void simple_case() {
