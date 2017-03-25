@@ -1,4 +1,5 @@
 #include <QTRSensors.h>
+#include <NewPing.h>
 
 #define rightMotorF 7
 #define rightMotorB 8
@@ -6,14 +7,20 @@
 #define leftMotorF 4
 #define leftMotorB 5
 #define leftMotorPWM 3
-#define rightSensor A6
-#define forwardSensor 2
+#define rightSensor A7
+#define forwardSensor A6
 #define stby 6
 #define led 13
+
+#define TRIGGER_PIN  10
+#define ECHO_PIN     2
+#define MAX_DISTANCE 200
 
 // QTRSensorsRC qtr((unsigned char[]) {A0,11, A1, A2, A3, A4, 12, A5}, 8, 2500);
 QTRSensorsRC qtr((unsigned char[]) {A5, 12, A4, A3, A2, A1, 11, A0}, 8, 2500);
 // QTRSensorsRC qtr((unsigned char[]) {A0, 12, A2, A3, A4, A5, 11, A1}, 8, 2500);
+
+NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE);
 
 void setup() {
   pinMode(rightMotorF, OUTPUT);
@@ -51,19 +58,20 @@ bool wall_sure = false;
 bool wall_found = false;
 
 #define kpW 0.5
-#define kdW 0
+#define kdW 5
 #define kiW 0
 //============xxxx======xxxx===========xxxx============================================
 int count = 0;
 int led_iter = 0;
 
-#define set_distance 150
+#define set_distance 900
 
 void loop() {
-  x = analogRead(rightSensor);
-  y = digitalRead(forwardSensor);
-
-  if(x > set_distance) {
+  // x = analogRead(rightSensor);
+  x = sonar.ping();
+  y = analogRead(forwardSensor);
+  
+  if(x < set_distance) {
     count++;
   }
   else {
@@ -81,14 +89,14 @@ void loop() {
   }
   else {
     simple_case();
-    wall_follow(70);
+    wall_follow(120);
     if (sensors[0] > 700 && sensors[1] > 700 && sensors[2] > 700 && sensors[3] > 700 && sensors[4] > 700 && sensors[5] > 700 && sensors[6] > 700 && sensors[7] > 700) {
       led_iter++;
     }
     if (led_iter > 10) {
       on_led();
     }
-    if (x < set_distance && (sensors[0] > 700 || sensors[1] > 700 || sensors[2] > 700 || sensors[3] > 700 || sensors[4] > 700 || sensors[5] > 700 || sensors[6] > 700 || sensors[7] > 700)) {
+    if (x > set_distance && (sensors[0] > 700 || sensors[1] > 700 || sensors[2] > 700 || sensors[3] > 700 || sensors[4] > 700 || sensors[5] > 700 || sensors[6] > 700 || sensors[7] > 700)) {
       wall_sure = false;
       count = 0;
     }
@@ -108,7 +116,7 @@ void on_led() {
 
 void simple_case() {
   static int j;
-  if(y == 0) {
+  if(y < 700) {
     j++;
   }
   else {
@@ -123,11 +131,11 @@ void simple_case() {
   if(wall_found) {
     digitalWrite(rightMotorF, HIGH);
     digitalWrite(rightMotorB, LOW);
-    analogWrite(rightMotorPWM,100);
+    analogWrite(rightMotorPWM,120);
 
     digitalWrite(leftMotorF, LOW);
     digitalWrite(leftMotorB, HIGH);
-    analogWrite(leftMotorPWM, 100);
+    analogWrite(leftMotorPWM, 120);
     digitalWrite(stby,HIGH);
     delay(200);
   }
@@ -139,14 +147,14 @@ void wall_follow(int maximum) {
 
   // simple_case();
   
-  int errorW = int(x) - 170;
+  int errorW = int(x) - 700;
   
   integralW += errorW;
   int derivativeW = errorW - lastErrorW;
   int power_differenceW = kpW * errorW + kiW * integralW + kdW * derivativeW;
   lastErrorW = errorW;
 
-  to_motors(-power_differenceW, maximum);
+  to_motors(power_differenceW, maximum);
 }
 
 
