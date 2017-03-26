@@ -1,4 +1,4 @@
-#include <QTRSensors.h>
+#include <NewPing.h>
 
 #define rightMotorF 7
 #define rightMotorB 8
@@ -6,14 +6,24 @@
 #define leftMotorF 4
 #define leftMotorB 5
 #define leftMotorPWM 3
-#define rightSensor A6
-#define forwardSensor 2
+#define rightSensor A7
+#define forwardSensor A5
 #define stby 6
 #define led 13
 
-// QTRSensorsRC qtr((unsigned char[]) {A0,11, A1, A2, A3, A4, 12, A5}, 8, 2500);
-QTRSensorsRC qtr((unsigned char[]) {A5, 12, A4, A3, A2, A1, 11, A0}, 8, 2500);
-// QTRSensorsRC qtr((unsigned char[]) {A0, 12, A2, A3, A4, A5, 11, A1}, 8, 2500);
+#define s1 A0
+#define s2 A1
+#define s3 A2
+#define s4 A3
+#define s5 A4
+
+#define num_sensors 5
+
+#define TRIGGER_PIN  10
+#define ECHO_PIN     2
+#define MAX_DISTANCE 200
+
+NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE);
 
 void setup() {
   pinMode(rightMotorF, OUTPUT);
@@ -26,20 +36,19 @@ void setup() {
   pinMode(forwardSensor, INPUT);
   pinMode(led,OUTPUT);
   pinMode(stby,OUTPUT);
-  for (int i = 0; i < 100; i++)  // make the calibration take about 5 seconds
-  {
-    qtr.calibrate();
-    delay(20);
-  }
+
+  pinMode(s1, INPUT);
+  pinMode(s2, INPUT);
+  pinMode(s3, INPUT);
+  pinMode(s4, INPUT);
+  pinMode(s5, INPUT);
+  
   // Serial.begin(9600);
- 
 }
 
-unsigned int sensors[8];
-
 //=====Constants for Line Following====================================================
-#define kp 0.05
-#define kd 4
+#define kp 50
+#define kd 0
 #define ki 0
 //==============xxxx=========xxxx=============xxxx===================================
 
@@ -51,47 +60,98 @@ bool wall_sure = false;
 bool wall_found = false;
 
 #define kpW 0.5
-#define kdW 0
+#define kdW 5
 #define kiW 0
 //============xxxx======xxxx===========xxxx============================================
 int count = 0;
 int led_iter = 0;
 
-#define set_distance 150
+#define set_distance 1200
 
 void loop() {
-  x = analogRead(rightSensor);
-  y = digitalRead(forwardSensor);
+  x = sonar.ping();
+  y = analogRead(forwardSensor);
 
-  if(x > set_distance) {
-    count++;
-  }
-  else {
-    count = 0;
-  }
-  if(count > 10)
-  {
-    wall_sure = true;
-  }
+  // if(x < set_distance) {
+  //   count++;
+  // }
+  // else {
+  //   count = 0;
+  // }
+  // if(count > 10)
+  // {
+  //   wall_sure = true;
+  // }
+  // if (y < 750) {
+  //   wall_sure = true;
+  //   simple_case();
+  // }
 
   
 
-  if (!wall_sure) {
-    bias_line_follow(120, true);
+  // if (!wall_sure) {
+  //   bias_line_follow(100, true);
+  // }
+  // else {
+  //   wall_follow(100);
+  //   unsigned int position = qtr.readLine(sensors, QTR_EMITTERS_ON,0);
+  //   if (sensors[0] > 500 && sensors[1] > 500 && sensors[2] > 500 && sensors[3] > 500 && sensors[4] > 500 && sensors[5] > 500 && sensors[6] > 500 && sensors[7] > 500) {
+  //     led_iter++;
+  //   }
+  //   if (led_iter > 10) {
+  //     on_led();
+  //   }
+  //   if (x > set_distance && (sensors[0] > 500 || sensors[1] > 500 || sensors[2] > 500 || sensors[3] > 500 || sensors[4] > 500 || sensors[5] > 500 || sensors[6] > 500 || sensors[7] > 500)) {
+  //     wall_sure = false;
+  //     count = 0;
+  //     led_iter = 0;
+  //   }
+  // }
+}
+
+int read_line() {
+  int ll, l, m, r, rr;
+  long avg, sum;
+  static int last_value;
+  ll = digitalRead(s1);
+  l = digitalRead(s2);
+  m = digitalRead(s3);
+  r = digitalRead(s4);
+  rr = digitalRead(s5);
+
+  unsigned char on_line = 0;
+  
+  // if(white_line) {
+  //   ll = 1 - ll;
+  //   l = 1 - l;
+  //   m = 1 - m;
+  //   r = 1 - r;
+  //   rr = 1 - rr;
+  // }
+
+  // keep track of whether we see the line at all
+  if(ll == 1 || l == 1 || m == 1 || r == 1 || rr == 1) {
+    on_line = 1;
   }
-  else {
-    wall_follow(70);
-    if (sensors[0] > 700 && sensors[1] > 700 && sensors[2] > 700 && sensors[3] > 700 && sensors[4] > 700 && sensors[5] > 700 && sensors[6] > 700 && sensors[7] > 700) {
-      led_iter++;
-    }
-    if (led_iter > 10) {
-      on_led();
-    }
-    if (x < set_distance && (sensors[0] > 700 || sensors[1] > 700 || sensors[2] > 700 || sensors[3] > 700 || sensors[4] > 700 || sensors[5] > 700 || sensors[6] > 700 || sensors[7] > 700)) {
-      wall_sure = false;
-      count = 0;
-    }
+
+  avg = (long)l * 1 + (long)m * 2 + (long)r * 3 + (long)rr * 4;
+  sum = (int)ll + (int)l + (int)m + (int)r + (int)rr;
+
+  if(!on_line)
+  {
+    // If it last read to the left of center, return 0.
+    if(last_value < 2)
+      return 0;
+
+    // If it last read to the right of center, return the max.
+    else
+      return 4;
+
   }
+
+  last_value = avg/sum;
+
+  return last_value;
 }
 
 void on_led() {
@@ -102,24 +162,26 @@ void on_led() {
   digitalWrite(leftMotorB, LOW);
   analogWrite(leftMotorPWM, 0);
   digitalWrite(stby,HIGH);
+  digitalWrite(led,HIGH);
   delay(5000);
+  digitalWrite(led, LOW);
 }
 
 void simple_case() {
   static int j;
-  if(y == 0) {
-    j++;
-  }
-  else {
-    j = 0;
-    wall_found = false;
-  }
-  if(j > 5)
-  {
-    wall_found = true;
-  }
+  // if(y < 700) {
+  //   j++;
+  // }
+  // else {
+  //   j = 0;
+  //   wall_found = false;
+  // }
+  // if(j > 5)
+  // {
+  //   wall_found = true;
+  // }
 
-  if(wall_found) {
+  if(y < 650) {
     digitalWrite(rightMotorF, HIGH);
     digitalWrite(rightMotorB, LOW);
     analogWrite(rightMotorPWM,100);
@@ -128,7 +190,7 @@ void simple_case() {
     digitalWrite(leftMotorB, HIGH);
     analogWrite(leftMotorPWM, 100);
     digitalWrite(stby,HIGH);
-    delay(200);
+    delay(100);
   }
 }
 
@@ -137,24 +199,27 @@ void wall_follow(int maximum) {
   static int integralW;
 
   simple_case();
+  if (x == 0) {
+    x = 7000;
+  }
   
-  int errorW = int(x) - 170;
+  int errorW = int(x) - 700;
   
   integralW += errorW;
   int derivativeW = errorW - lastErrorW;
   int power_differenceW = kpW * errorW + kiW * integralW + kdW * derivativeW;
   lastErrorW = errorW;
 
-  to_motors(-power_differenceW, maximum);
+  to_motors(power_differenceW, maximum);
 }
 
 
 void line_follow(int maximum) {
   static int lastError;
   static int integral;
-  unsigned int position = qtr.readLine(sensors, QTR_EMITTERS_ON,0);
+  int position = read_line();
 
-  int error = int(position) - 3500;
+  int error = position - 2;
   
   integral += error;
   int derivative = error - lastError;
@@ -178,7 +243,7 @@ void bias_line_follow(int maximum, bool right) {
 
   bool u_turn;
   static int iter_count = 0;
-  if (sensors[0] < 200 && sensors[1] < 200 && sensors[2] < 200 && sensors[3] < 200 && sensors[4] < 200 && sensors[5] < 200 && sensors[6] < 200 && sensors[7] < 200) {
+  if (sensors[0] < 500 && sensors[1] < 500 && sensors[2] < 500 && sensors[3] < 500 && sensors[4] < 500 && sensors[5] < 500 && sensors[6] < 500 && sensors[7] < 500) {
     u_turn = true;
     iter_count = 0;
   }
@@ -207,7 +272,7 @@ void bias_line_follow(int maximum, bool right) {
 }
 
 void check_turn_left() {
-  if (sensors[0] > 700 && sensors[1] > 700 && sensors[2] > 700 && sensors[3] > 700 && sensors[4] > 700) {
+  if (sensors[0] > 500 && sensors[1] > 500 && sensors[2] > 500 && sensors[3] > 500 && sensors[4] > 500) {
     digitalWrite(rightMotorF, HIGH);
     digitalWrite(rightMotorB, LOW);
     analogWrite(rightMotorPWM, 0);
@@ -336,6 +401,7 @@ void to_motors(int power_difference, int maximum) {
 }
 
 void print_qtr() {
+  unsigned int position = qtr.readLine(sensors, QTR_EMITTERS_ON,0);
   for(int i=0;i<8;i++) {
     Serial.print(sensors[i]);
     Serial.print("\t");
