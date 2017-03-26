@@ -10,12 +10,12 @@
 #define rightSensor A7
 #define forwardSensor A6
 #define stby 6
-#define led 13
+#define led 2
 
 #define num_sensors 5
 
 #define TRIGGER_PIN  10
-#define ECHO_PIN     2
+#define ECHO_PIN     13
 #define MAX_DISTANCE 200
 
 const int latchPin = 1;//Pin 12 connected to ST_CP of 74HC595
@@ -59,7 +59,7 @@ unsigned int sensors[8];
 
 //=====Constants for Line Following====================================================
 #define kp 0.05
-#define kd 2
+#define kd 1.5
 #define ki 0
 //==============xxxx=========xxxx=============xxxx===================================
 
@@ -71,7 +71,7 @@ bool wall_sure = false;
 bool wall_found = false;
 
 #define kpW 0.5
-#define kdW 5
+#define kdW 3
 #define kiW 0
 //============xxxx======xxxx===========xxxx============================================
 int count = 0;
@@ -85,7 +85,7 @@ void loop() {
   x = sonar.ping();
   y = analogRead(forwardSensor);
 
-  wall_follow(100);
+  // wall_follow(100);
 
   if(x < set_distance) {
     count++;
@@ -105,7 +105,7 @@ void loop() {
   
 
   if (!wall_sure) {
-    bias_line_follow(100, true);
+    bias_line_follow(170, true);
   }
   else {
     wall_follow(100);
@@ -138,15 +138,6 @@ void loop() {
           on_led();
         }
       }
-    }
-    if (x > set_distance && (sensors[0] > 500 || sensors[1] > 500 || sensors[2] > 500 || sensors[3] > 500 || sensors[4] > 500 || sensors[5] > 500 || sensors[6] > 500 || sensors[7] > 500)) {
-      // wall_sure = false;
-      count = 0;
-      led_iter = 0;
-    }
-
-    if (led_iter > 10) {
-      on_led();
     }
   }
 }

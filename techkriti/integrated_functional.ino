@@ -11,8 +11,8 @@
 #define stby 6
 #define led 13
 
-// QTRSensorsRC qtr((unsigned char[]) {A0,11, A1, A2, A3, A4, 12, A5}, 8, 2500);
-QTRSensorsRC qtr((unsigned char[]) {A5, 12, A4, A3, A2, A1, 11, A0}, 8, 2500);
+QTRSensorsRC qtr((unsigned char[]) {A0,11, A1, A2, A3, A4, 12, A5}, 8, 2500);
+// QTRSensorsRC qtr((unsigned char[]) {A5, 12, A4, A3, A2, A1, 11, A0}, 8, 2500);
 // QTRSensorsRC qtr((unsigned char[]) {A0, 12, A2, A3, A4, A5, 11, A1}, 8, 2500);
 
 void setup() {
@@ -60,38 +60,39 @@ int led_iter = 0;
 #define set_distance 150
 
 void loop() {
-  x = analogRead(rightSensor);
-  y = digitalRead(forwardSensor);
+  line_follow(100);
+  // x = analogRead(rightSensor);
+  // y = digitalRead(forwardSensor);
 
-  if(x > set_distance) {
-    count++;
-  }
-  else {
-    count = 0;
-  }
-  if(count > 10)
-  {
-    wall_sure = true;
-  }
+  // if(x > set_distance) {
+  //   count++;
+  // }
+  // else {
+  //   count = 0;
+  // }
+  // if(count > 10)
+  // {
+  //   wall_sure = true;
+  // }
 
   
 
-  if (!wall_sure) {
-    bias_line_follow(120, true);
-  }
-  else {
-    wall_follow(70);
-    if (sensors[0] > 700 && sensors[1] > 700 && sensors[2] > 700 && sensors[3] > 700 && sensors[4] > 700 && sensors[5] > 700 && sensors[6] > 700 && sensors[7] > 700) {
-      led_iter++;
-    }
-    if (led_iter > 10) {
-      on_led();
-    }
-    if (x < set_distance && (sensors[0] > 700 || sensors[1] > 700 || sensors[2] > 700 || sensors[3] > 700 || sensors[4] > 700 || sensors[5] > 700 || sensors[6] > 700 || sensors[7] > 700)) {
-      wall_sure = false;
-      count = 0;
-    }
-  }
+  // if (!wall_sure) {
+  //   bias_line_follow(120, true);
+  // }
+  // else {
+  //   wall_follow(70);
+  //   if (sensors[0] > 700 && sensors[1] > 700 && sensors[2] > 700 && sensors[3] > 700 && sensors[4] > 700 && sensors[5] > 700 && sensors[6] > 700 && sensors[7] > 700) {
+  //     led_iter++;
+  //   }
+  //   if (led_iter > 10) {
+  //     on_led();
+  //   }
+  //   if (x < set_distance && (sensors[0] > 700 || sensors[1] > 700 || sensors[2] > 700 || sensors[3] > 700 || sensors[4] > 700 || sensors[5] > 700 || sensors[6] > 700 || sensors[7] > 700)) {
+  //     wall_sure = false;
+  //     count = 0;
+  //   }
+  // }
 }
 
 void on_led() {

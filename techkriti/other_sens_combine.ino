@@ -82,6 +82,53 @@ void loop() {
   rr = digitalRead(s5);
   
 
+
+  if(x < set_distance) {
+    count++;
+  }
+  else {
+    count = 0;
+  }
+  if(count > 10)
+  {
+    wall_sure = true;
+  }
+  if (y < 750) {
+    wall_sure = true;
+    simple_case();
+  }
+
+  
+
+  if (!wall_sure) {
+    bias_line_follow(100, true);
+  }
+  else {
+    wall_follow(100);
+    unsigned int position = qtr.readLine(sensors, QTR_EMITTERS_ON,0);
+    if (sensors[0] > 500 && sensors[1] > 500 && sensors[2] > 500 && sensors[3] > 500 && sensors[4] > 500 && sensors[5] > 500 && sensors[6] > 500 && sensors[7] > 500) {
+      led_iter++;
+    }
+    if (led_iter > 10) {
+      on_led();
+    }
+    if (x > set_distance && (sensors[0] > 500 || sensors[1] > 500 || sensors[2] > 500 || sensors[3] > 500 || sensors[4] > 500 || sensors[5] > 500 || sensors[6] > 500 || sensors[7] > 500)) {
+      wall_sure = false;
+      count = 0;
+      led_iter = 0;
+    }
+  }
+
+
+
+
+
+
+
+
+
+
+
   // if (rr == 0) {
   //   digitalWrite(rightMotorF, HIGH);
   //   digitalWrite(rightMotorB, LOW);
@@ -202,53 +249,54 @@ void loop() {
 
 
 
-
-
-
   // found block
   if(y < 800) {
-    digitalWrite(rightMotorF, HIGH);
-    digitalWrite(rightMotorB, LOW);
-    analogWrite(rightMotorPWM,100);
-
-    digitalWrite(leftMotorF, LOW);
-    digitalWrite(leftMotorB, HIGH);
-    analogWrite(leftMotorPWM, 100);
-    digitalWrite(stby,HIGH);
-    delay(200);
-    while ((ll == 1 && l == 1 && m == 1 && r == 1 && rr == 1) || bounce_iter < 100) {
-      ll = digitalRead(s1);
-      l = digitalRead(s2);
-      r = digitalRead(s3);
-      m = digitalRead(s4);
-      rr = digitalRead(s5);
-      wall_follow(100);
-      bounce_iter++;
-    }
-    bounce_iter = 0;
-    num_blocks++;
-    digitalWrite(rightMotorF, HIGH);
-    digitalWrite(rightMotorB, LOW);
-    analogWrite(rightMotorPWM, 100);
-    digitalWrite(leftMotorF, HIGH);
-    digitalWrite(leftMotorB, LOW);
-    analogWrite(leftMotorPWM, 100);
-    digitalWrite(stby,HIGH);
-    delay(150);
-
-    // digitalWrite(rightMotorF, HIGH);
-    // digitalWrite(rightMotorB, LOW);
-    // analogWrite(rightMotorPWM,0);
-
-    // digitalWrite(leftMotorF, LOW);
-    // digitalWrite(leftMotorB, HIGH);
-    // analogWrite(leftMotorPWM, 0);
-    // digitalWrite(stby,HIGH);
-    // delay(1000);
-    catch_left();
-    }
+    follow_block();
+  }
 
   line_follow();
+}
+
+void follow_block() {
+  digitalWrite(rightMotorF, HIGH);
+  digitalWrite(rightMotorB, LOW);
+  analogWrite(rightMotorPWM,100);
+
+  digitalWrite(leftMotorF, LOW);
+  digitalWrite(leftMotorB, HIGH);
+  analogWrite(leftMotorPWM, 100);
+  digitalWrite(stby,HIGH);
+  delay(200);
+  while ((ll == 1 && l == 1 && m == 1 && r == 1 && rr == 1) || bounce_iter < 100) {
+    ll = digitalRead(s1);
+    l = digitalRead(s2);
+    r = digitalRead(s3);
+    m = digitalRead(s4);
+    rr = digitalRead(s5);
+    wall_follow(100);
+    bounce_iter++;
+  }
+  bounce_iter = 0;
+  num_blocks++;
+  digitalWrite(rightMotorF, HIGH);
+  digitalWrite(rightMotorB, LOW);
+  analogWrite(rightMotorPWM, 100);
+  digitalWrite(leftMotorF, HIGH);
+  digitalWrite(leftMotorB, LOW);
+  analogWrite(leftMotorPWM, 100);
+  digitalWrite(stby,HIGH);
+  delay(150);
+
+  // digitalWrite(rightMotorF, HIGH);
+  // digitalWrite(rightMotorB, LOW);
+  // analogWrite(rightMotorPWM,0);
+
+  // digitalWrite(leftMotorF, LOW);
+  // digitalWrite(leftMotorB, HIGH);
+  // analogWrite(leftMotorPWM, 0);
+  // digitalWrite(stby,HIGH);
+  // delay(1000);
+  catch_left();
 }
 
 void show_nums(int num) {

@@ -69,8 +69,9 @@ int led_iter = 0;
 #define set_distance 1200
 
 void loop() {
-  x = sonar.ping();
-  y = analogRead(forwardSensor);
+  line_follow(70);
+  // x = sonar.ping();
+  // y = analogRead(forwardSensor);
 
   // if(x < set_distance) {
   //   count++;
@@ -154,66 +155,6 @@ int read_line() {
   return last_value;
 }
 
-void on_led() {
-  digitalWrite(rightMotorF, HIGH);
-  digitalWrite(rightMotorB, LOW);
-  analogWrite(rightMotorPWM, 0);
-  digitalWrite(leftMotorF, HIGH);
-  digitalWrite(leftMotorB, LOW);
-  analogWrite(leftMotorPWM, 0);
-  digitalWrite(stby,HIGH);
-  digitalWrite(led,HIGH);
-  delay(5000);
-  digitalWrite(led, LOW);
-}
-
-void simple_case() {
-  static int j;
-  // if(y < 700) {
-  //   j++;
-  // }
-  // else {
-  //   j = 0;
-  //   wall_found = false;
-  // }
-  // if(j > 5)
-  // {
-  //   wall_found = true;
-  // }
-
-  if(y < 650) {
-    digitalWrite(rightMotorF, HIGH);
-    digitalWrite(rightMotorB, LOW);
-    analogWrite(rightMotorPWM,100);
-
-    digitalWrite(leftMotorF, LOW);
-    digitalWrite(leftMotorB, HIGH);
-    analogWrite(leftMotorPWM, 100);
-    digitalWrite(stby,HIGH);
-    delay(100);
-  }
-}
-
-void wall_follow(int maximum) {
-  static int lastErrorW;
-  static int integralW;
-
-  simple_case();
-  if (x == 0) {
-    x = 7000;
-  }
-  
-  int errorW = int(x) - 700;
-  
-  integralW += errorW;
-  int derivativeW = errorW - lastErrorW;
-  int power_differenceW = kpW * errorW + kiW * integralW + kdW * derivativeW;
-  lastErrorW = errorW;
-
-  to_motors(power_differenceW, maximum);
-}
-
-
 void line_follow(int maximum) {
   static int lastError;
   static int integral;
@@ -226,152 +167,7 @@ void line_follow(int maximum) {
   int power_difference = kp * error + ki * integral + kd * derivative;
   lastError = error;
   
-  to_motors(power_difference, maximum);
-}
-
-void bias_line_follow(int maximum, bool right) {
-  static int lastError;
-  static int integral;
-  unsigned int position = qtr.readLine(sensors, QTR_EMITTERS_ON,0);
-
-  int error = int(position) - 3500;
-  
-  integral += error;
-  int derivative = error - lastError;
-  int power_difference = kp * error + ki * integral + kd * derivative;
-  lastError = error;
-
-  bool u_turn;
-  static int iter_count = 0;
-  if (sensors[0] < 500 && sensors[1] < 500 && sensors[2] < 500 && sensors[3] < 500 && sensors[4] < 500 && sensors[5] < 500 && sensors[6] < 500 && sensors[7] < 500) {
-    u_turn = true;
-    iter_count = 0;
-  }
-  if (iter_count > 60) {
-    u_turn = false;
-  }
-  iter_count++;
-  if (!u_turn){
-    if (right) {
-      check_turn_right();
-      for(int i = 0; i < 8; i++) {
-        sensors[i] = 0;
-      }
-      sensors[0] = 1000;
-    }
-    else {
-      check_turn_left();
-      for(int i = 0; i < 8; i++) {
-        sensors[i] = 0;
-      }
-      sensors[7] = 1000;
-    }
-  }
-  
-  to_motors(power_difference, maximum);
-}
-
-void check_turn_left() {
-  if (sensors[0] > 500 && sensors[1] > 500 && sensors[2] > 500 && sensors[3] > 500 && sensors[4] > 500) {
-    digitalWrite(rightMotorF, HIGH);
-    digitalWrite(rightMotorB, LOW);
-    analogWrite(rightMotorPWM, 0);
-    digitalWrite(leftMotorF, HIGH);
-    digitalWrite(leftMotorB, LOW);
-    analogWrite(leftMotorPWM, 0);
-    digitalWrite(stby,HIGH);
-    delay(30);
-
-    digitalWrite(rightMotorF, HIGH);
-    digitalWrite(rightMotorB, LOW);
-    analogWrite(rightMotorPWM, 140);
-    digitalWrite(leftMotorF, HIGH);
-    digitalWrite(leftMotorB, LOW);
-    analogWrite(leftMotorPWM, 0);
-    digitalWrite(stby,HIGH);
-    delay(300);
-  }
-}
-
-void check_turn_right() {
-  if (sensors[7] > 700 && sensors[6] > 700 && sensors[5] > 700 && sensors[4] > 700 && sensors[3] > 700) {
-    digitalWrite(rightMotorF, HIGH);
-    digitalWrite(rightMotorB, LOW);
-    analogWrite(rightMotorPWM, 0);
-    digitalWrite(leftMotorF, HIGH);
-    digitalWrite(leftMotorB, LOW);
-    analogWrite(leftMotorPWM, 0);
-    digitalWrite(stby,HIGH);
-    delay(30);
-
-    digitalWrite(rightMotorF, HIGH);
-    digitalWrite(rightMotorB, LOW);
-    analogWrite(rightMotorPWM, 0);
-    digitalWrite(leftMotorF, HIGH);
-    digitalWrite(leftMotorB, LOW);
-    analogWrite(leftMotorPWM, 140);
-    digitalWrite(stby,HIGH);
-    delay(300);
-  }
-}
-
-// void delay_line_follow(int maximum) {
-//   static int lastError;
-//   static int integral;
-//   int i = 0;
-//   while (1) {
-//     unsigned int position = qtr.readLine(sensors, QTR_EMITTERS_ON,0);
-
-//     int error = int(position) - 3500;
-    
-//     integral += error;
-//     int derivative = error - lastError;
-//     int power_difference = kp * error + ki * integral + kd * derivative;
-//     lastError = error;
-    
-//     if (sensors[7] > 700 && sensors[6] > 700 && sensors[5] > 700 && sensors[4] > 700 && sensors[3] > 700) {
-//       turn_right();
-//     }
-
-//     to_motors(power_difference, maximum);
-//     i++;
-//   }
-// }
-
-void biased_line_follow(int maximum) {
-  static int lastError;
-  static int integral;
-  bool right = false;
-  for (int i = 300; i > 0; i--) {
-    if (sensors[7] > 700) {
-      right = true;
-    }
-    unsigned int position = qtr.readLine(sensors, QTR_EMITTERS_ON,0);
-    if (right == true) {
-      if (position <= 5000) {
-        position += 2000;
-      }
-      else {
-        position = 7000;
-      }
-    }
-    int error = int(position) - 3500;
-    
-    integral += error;
-    int derivative = error - lastError;
-    int power_difference = kp * error + ki * integral + kd * derivative;
-    lastError = error;
-
-    // if (sensors[7] > 700) {
-    //   right = true;
-    // }
-    // if (right == true) {
-    //   to_motors(power_difference+100, maximum);
-    // }
-    // else {
-    to_motors(power_difference, maximum);
-    // }
-  }
+  to_motors(-power_difference, maximum);
 }
 
 void to_motors(int power_difference, int maximum) {
